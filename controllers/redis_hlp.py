@@ -1,8 +1,6 @@
 #redis-cli
 import redis
 
-import redis
-
 class RedisHelper:
     def __init__(self):
         self._client = None
