@@ -11,11 +11,11 @@ mongo_helper.usar_db('bdd2')
 #document = {'name': 'John Doe', 'age': 30}
 #mongo_helper.insert_document('usuarios',document)
 
-fede = mongo_helper.get_collection('usuarios').find_one({'nombre':"fede"})
+result = mongo_helper.get_collection('usuarios').find_one({'name':"fede"})
+print(result)
+fede2 = result['tiempo_promedio']
 
-fede2 = fede['nombre']
-
-print(type(fede2))
+print(type(fede2),fede2)
 
 
 

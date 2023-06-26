@@ -1,4 +1,4 @@
-#Para levantar mongo desde docker tipear mongosh
+# Para levantar mongo desde docker tipear mongosh
 from pymongo import MongoClient
 
 class MongoHelper:
@@ -32,6 +32,9 @@ class MongoHelper:
 
     def get_client(self):
         return self._client
+    
+    #def check_user():
+        
 
 
 

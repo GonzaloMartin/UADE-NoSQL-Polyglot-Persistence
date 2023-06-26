@@ -1,8 +1,19 @@
 class Usuario:
-    def __init__(self, nombre, direccion, documento_identidad):
-        self.nombre = nombre
-        self.direccion = direccion
-        self.documento_identidad = documento_identidad
+    def __init__(self, result):
+        self.nombre = result['name']
+        self.direccion = result['address']
+        self.documento_identidad = result['dni']
+        self.tiempoPromedio = result['tiempo_promedio']
+        self.sesion = True
+
+    def setSession(self,sesion):
+        self.sesion = sesion
+
+    def getSesion(self):
+        return self.sesion
+
+
+
 
     # Métodos para gestionar la información del usuario
 
