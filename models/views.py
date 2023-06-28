@@ -36,9 +36,14 @@ class Views:
     def display_gestionar_carrito_view(self):
         print("1. Listar carrito\n"
               "2. Agregar Producto al carrito\n"
-              "3. Eliminar Producto del carrito\n"
-              "4. Modificar cantidad de un producto\n"
-              "5. Salir\n")
+              "3. Modificar cantidad de un producto\n"
+              "4. Eliminar Producto del carrito\n"
+              "5. Confirmar carrito\n"
+              "6. Salir\n")
+
         opcion = int(input("opcion: "))
         return opcion
+
+
+
 
