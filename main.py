@@ -18,17 +18,14 @@ while True:
     eleccion = view.display_main_view()
     while eleccion != 3:
         try:
-            eleccion = view.display_main_view()
+            if eleccion == 1:
+                view.display_buscar_producto_view()
+            elif eleccion == 2:
+                view.display_gestionar_carrito_view()
+            else:
+                print("Opción inválida.")
         except ValueError:
             print("Error, intente nuevamente")
 
-    if eleccion == 1:
-        view.display_buscar_producto_view()
-    elif eleccion == 2:
-        view.display_gestionar_carrito_view()
-
-
-
-
-
+        eleccion = view.display_main_view()
 
