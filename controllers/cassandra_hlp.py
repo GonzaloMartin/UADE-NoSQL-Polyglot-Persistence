@@ -1,5 +1,6 @@
 #cqlsh para arrancar cassandra
 from cassandra.cluster import Cluster
+from cassandra.auth import PlainTextAuthProvider
 
 #en cassandra keyspace = BDD
 
@@ -39,5 +40,3 @@ class CassandraHelper:
     def close_connection(self):
         self._session.shutdown()
         self._cluster.shutdown()
-
-
