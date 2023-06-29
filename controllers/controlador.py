@@ -16,9 +16,12 @@ mongo_helper.usar_db('bdd2')
 # Realizar la búsqueda utilizando la expresión regular
 #result = mongo_helper["productos"].find({"nombre": {"$regex": "adidas", "$options": "i"}})
 result = mongo_helper.get_matching_documents('productos',"nombre","adidas")
-print(result)
-print(result[2])
-print(result[2]['nombre'])
+print(result[0])
+result = mongo_helper.get_matching_documents('productos',"nombre","1")
+print(result[0]['nombre'])
+
+
+#print(result[2]['nombre'])
 #result = mongo_helper.exists_documents('a')
 #print(result)
 

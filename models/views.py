@@ -35,12 +35,12 @@ class Views:
         producto = input("Ingrese el producto que desea buscar: ")
         catalogo = catalogo_productos()
         resultados = catalogo.buscar(producto) #resultados tiene la lista de productos
-        if resultados != None:
+        if resultados is not None:
             catalogo.mostrar_catalogo(resultados) #se muestran los resultados
             try:
                 seleccion = int(input("Seleccione el número de producto para ver los detalles: "))
                 producto_seleccionado = catalogo.seleccionar_producto(seleccion,catalogo.buscar(producto)) #devuelve el producto (obj) si no existe, None
-                if producto_seleccionado != None:
+                if producto_seleccionado is not None:
                     print(producto_seleccionado)
                     print("\n1. Agregar al carrito")
                     print("2. Volver al menú principal")
@@ -64,14 +64,17 @@ class Views:
 
 
     def display_gestionar_carrito_view(self,carrito):
-        print("\n1. Listar carrito"
-              "\n2. Agregar Producto al carrito"
-              "\n3. Eliminar Producto del carrito"
-              "\n4. Modificar cantidad de un producto"
-              "\n5. Salir")
-        opcion = int(input("opcion: "))
-        if opcion == 1:
-            carrito.mostrarCarrito()
+        if carrito is not None:
+            print("\n1. Listar carrito"
+                  "\n2. Agregar Producto al carrito"
+                  "\n3. Eliminar Producto del carrito"
+                  "\n4. Modificar cantidad de un producto"
+                  "\n5. Salir")
+            opcion = int(input("opcion: "))
+            if opcion == 1:
+                carrito.mostrarCarrito()
+        else:
+            print("No existe un carrito activo")
 
 
 
