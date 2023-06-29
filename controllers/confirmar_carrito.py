@@ -1,4 +1,4 @@
-from cassandra_hlp import CassandraHelper
+from controllers.cassandra_hlp import CassandraHelper
 
 class ConfirmarCarrito:
     def __init__(self):

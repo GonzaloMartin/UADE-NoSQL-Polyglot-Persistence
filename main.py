@@ -11,17 +11,19 @@ view = Views()
 
 #if __name__ == "__main__":
 while True:
-    usuario = view.display_login_screen()
+    usuario = view.display_login_screen() #mostrar login
     while usuario == None:
         usuario = view.display_login_screen()
 
     eleccion = view.display_main_view()
-    while eleccion != 3:
+    while eleccion != 3: # main menu
         try:
-            if eleccion == 1:
-                view.display_buscar_producto_view()
-            elif eleccion == 2:
-                view.display_gestionar_carrito_view()
+            if eleccion == 1: # buscar producto
+                carrito = view.display_catalogo_productos_view()
+
+
+            elif eleccion == 2: # gestionar carrito
+                view.display_gestionar_carrito_view(carrito)
             else:
                 print("Opción inválida.")
         except ValueError:

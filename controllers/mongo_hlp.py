@@ -12,19 +12,27 @@ class MongoHelper:
     def usar_db(self, db_name):
         self._db = self._client[db_name]
 
-    def get_collection(self, collection_name):
-        return self._db[collection_name]
+    def get_collection(self, collection):
+        return self._db[collection]
+
+    def exists_documents(self,collection):
+        self._db[collection].find_one()
 
     def get_documents(self,collection):
         coleccion = self._db[collection]
         return list(coleccion.find())
 
+    def get_matching_documents(self,collection,clave,valor):
+        return self._db[collection].find({clave: {"$regex": valor, "$options": "i"}})
+
+
+
     def insert_document(self,collection,document):
         coleccion = self._db[collection]
         coleccion.insert_one(document)
 
-    #def update_document(self, filter, update):
-        #self._collection.update_one(filter, update)
+    def update_document(self, collection, query):
+        collection.update_one(query)
 
     def close_connection(self):
         if self._client:

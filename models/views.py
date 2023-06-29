@@ -1,11 +1,9 @@
 from controllers.LoginController import *
-from controllers.buscarProducto import BuscarProducto
+from controllers.catalogo_productos_controller import catalogo_productos
+from controllers.carrito_controller import carrito_controller
 from controllers.confirmar_carrito import ConfirmarCarrito
 
 class Views:
-    def __init__(self):
-        self.buscar_producto = BuscarProducto()
-        self.confirmar_carrito = ConfirmarCarrito()
 
     def display_login_screen(self):
         print("=== Login ===")
@@ -23,72 +21,59 @@ class Views:
         #self.controller.register(username, password, dni, address)
 
     def display_main_view(self):
-        print("1. Buscar Producto\n"
-              "2. Gestionar Carrito\n"
-              "3. Cerrar Sesión\n")
-        opcion = int(input("opcion: "))
+        print("\n1. Buscar Producto"
+              "\n2. Gestionar Carrito"
+              "\n3. Cerrar Sesión")
+        try:
+            opcion = int(input("opcion: "))
+        except ValueError:
+            return
         return opcion
 
-    def display_buscar_producto_view(self):
+    def display_catalogo_productos_view(self):
         print("-- Buscar producto --")
         producto = input("Ingrese el producto que desea buscar: ")
-        collection = 'productos'
-        resultados = self.buscar_producto.buscar_producto(producto, collection)
-
-        if len(resultados) > 0:
-            print("Resultados de búsqueda:")
-            for i, prod in enumerate(resultados):
-                print(f"{i + 1}. {prod['nombre']} ${prod['precio']}")
-                print("-----------------------")
-
-            seleccion = input("Seleccione el número de producto para ver los detalles: ")
-            if seleccion.isdigit() and int(seleccion) in range(1, len(resultados) + 1):
-                producto_seleccionado = resultados[int(seleccion) - 1]
-                self.display_detalle_producto_view(producto_seleccionado)
-            else:
-                print("Selección inválida.")
+        catalogo = catalogo_productos()
+        resultados = catalogo.buscar(producto) #resultados tiene la lista de productos
+        if resultados != None:
+            catalogo.mostrar_catalogo(resultados) #se muestran los resultados
+            try:
+                seleccion = int(input("Seleccione el número de producto para ver los detalles: "))
+                producto_seleccionado = catalogo.seleccionar_producto(seleccion,catalogo.buscar(producto)) #devuelve el producto (obj) si no existe, None
+                if producto_seleccionado != None:
+                    print(producto_seleccionado)
+                    print("\n1. Agregar al carrito")
+                    print("2. Volver al menú principal")
+                    seleccion = int(input("Seleccionar: "))
+                    if seleccion == 1:
+                        cantidad = int(input("\nSeleccione la cantidad: "))
+                        producto_seleccionado.cantidad = cantidad
+                        carrito = carrito_controller()
+                        carrito.agregarProducto(producto_seleccionado)  # se agrega el producto
+                        return carrito
+                    elif seleccion == 2:
+                        return
+                    else:
+                        print("Opción inválida.")
+                else:
+                    print("Selección inválida")
+            except ValueError:
+                print("Selección no válida")
         else:
             print("No se encontraron resultados.")
 
-    def display_detalle_producto_view(self, producto):
-        print()
-        print("-- Detalle del producto --")
-        print(f"* ID: {producto['id']}")
-        print(f"* Nombre: {producto['nombre']}")
-        print(f"* Precio: ${producto['precio']}")
-        print(f"* Categoría: {producto['categoria']}")
-        print(f"* Descripción: {producto['descripción']}")
-        print("1. Agregar al carrito")
-        print("2. Volver al menú principal")
-        seleccion = int(input("Seleccionar: "))
-        if seleccion == 1:
-            print()
-            print("-- Carrito de compras --")
-            cantidad = int(input("Indicar cantidad: "))
-            print("1. Aceptar e ir al carrito")
-            print("2. Volver al menú principal")
-            seleccion = int(input("Seleccionar: "))
-            if seleccion == 1:
-                print(f"Cantidad seleccionada: {cantidad}")
-                print()
 
-            elif seleccion == 2:
-                return
-            else:
-                print("Opción inválida.")
-        elif seleccion == 2:
-            return
-        else:
-            print("Opción inválida.")
-
-    def display_gestionar_carrito_view(self):
-        print("1. Listar carrito\n"
-              "2. Agregar Producto al carrito\n"
-              "3. Eliminar Producto del carrito\n"
-              "4. Modificar cantidad de un producto\n"
-              "5. Salir\n")
+    def display_gestionar_carrito_view(self,carrito):
+        print("\n1. Listar carrito"
+              "\n2. Agregar Producto al carrito"
+              "\n3. Eliminar Producto del carrito"
+              "\n4. Modificar cantidad de un producto"
+              "\n5. Salir")
         opcion = int(input("opcion: "))
-        return opcion
+        if opcion == 1:
+            carrito.mostrarCarrito()
+
+
 
     def display_confirmar_carrito_view(self, carrito, cliente):
         print("-- Confirmación de Carrito --")
