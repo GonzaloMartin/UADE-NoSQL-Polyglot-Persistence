@@ -14,25 +14,32 @@ class Usuario:
 
 
 
-
-    # Métodos para gestionar la información del usuario
-
-
 class Carrito:
+
     def __init__(self):
-        self.productos = {}  # Diccionario: producto -> cantidad
+        self.ids = []
+        self.nombres = []
+        self.cantidad = []
 
-    def agregar_producto(self, producto, cantidad):
-        pass
-        # Lógica para agregar un producto al carrito
+    def agregar_producto(self, producto):
+        if producto.id in self.ids:
+            index = self.ids.index(producto.id)
+            self.cantidad[index] = self.cantidad[index] + producto.cantidad
+            print(f"\nEl producto {producto.nombre} ya existía en el carrito. Se ha actualizado su cantidad: {producto.cantidad}")
+        else:
+            self.ids.append(producto.id)
+            self.nombres.append(producto.nombre)
+            self.cantidad.append(producto.cantidad)
 
-    def eliminar_producto(self, producto):
-        pass
-        # Lógica para eliminar un producto del carrito
+    def mostrar_carrito(self):
+        if len(self.ids) == 0:
+            print("El carrito está vacío.")
+        else:
+            print("Productos en el carrito:")
+            for i in range(len(self.ids)):
+                print(f"ID: {self.ids[i]}, Nombre: {self.nombres[i]}, Cantidad: {self.cantidad[i]}")
 
-    def cambiar_cantidad(self, producto, cantidad):
-        pass
-        # Lógica para cambiar la cantidad de un producto en el carrito
+
 
 
 class Pedido:
@@ -116,3 +123,14 @@ class Pago:
 
     # Otros métodos relacionados con la gestión de pagos
 
+class Producto:
+    def __init__(self, id, nombre, precio, cantidad, categoria, descripcion):
+        self.id = id
+        self.nombre = nombre
+        self.precio = precio
+        self.cantidad = cantidad
+        self.categoria = categoria
+        self.descripcion= descripcion
+
+    def __str__(self):
+        return f"\nNombre: {self.nombre}\nPrecio: {self.precio}\nCategoría: {self.categoria}\nDescripción: {self.descripcion}"

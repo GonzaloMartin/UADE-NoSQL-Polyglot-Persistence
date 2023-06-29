@@ -11,11 +11,20 @@ mongo_helper.usar_db('bdd2')
 #document = {'name': 'John Doe', 'age': 30}
 #mongo_helper.insert_document('usuarios',document)
 
-result = mongo_helper.get_collection('usuarios').find_one({'name':"fede"})
-print(result)
-fede2 = result['tiempo_promedio']
+ # Ignorar mayúsculas y minúsculas
 
-print(type(fede2),fede2)
+# Realizar la búsqueda utilizando la expresión regular
+#result = mongo_helper["productos"].find({"nombre": {"$regex": "adidas", "$options": "i"}})
+result = mongo_helper.get_matching_documents('productos',"nombre","adidas")
+print(result)
+print(result[2])
+print(result[2]['nombre'])
+#result = mongo_helper.exists_documents('a')
+#print(result)
+
+#fede2 = result['tiempo_promedio']
+
+#print(type(fede2),fede2)
 
 
 
@@ -26,6 +35,7 @@ print(type(fede2),fede2)
 #    print(doc)
 
 # Cerrar la conexión
+"""
 mongo_helper.close_connection()
 
 
@@ -48,7 +58,7 @@ print(valor,"reddis")
 redis_helper.close_connection()
 
 
-"""
+
 # Uso del controlador CASSANDRA
 cassandra_helper = CassandraHelper()
 cassandra_helper.connect()
