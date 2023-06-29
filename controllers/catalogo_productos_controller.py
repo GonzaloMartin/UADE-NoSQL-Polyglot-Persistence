@@ -22,7 +22,7 @@ class catalogo_productos:
         catalogo.rewind()
 
     def seleccionar_producto(self,seleccion,catalogo):
-        documento = catalogo[seleccion]
+        documento = catalogo[seleccion - 1]
         producto = Producto(documento['id'],documento['nombre'],documento['precio'],0,documento['categoria'],documento['descripcion'])
         return producto
 

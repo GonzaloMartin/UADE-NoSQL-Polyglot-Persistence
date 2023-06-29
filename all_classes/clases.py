@@ -1,9 +1,9 @@
 class Usuario:
-    def __init__(self, result):
+    def __init__(self,result):
         self.nombre = result['name']
         self.direccion = result['address']
-        self.documento_identidad = result['dni']
-        self.tiempoPromedio = result['tiempo_promedio']
+        self.documento = result['dni']
+        self.tiempo_promedio = result['tiempo_promedio']
         self.sesion = True
 
     def setSession(self,sesion):
@@ -11,6 +11,9 @@ class Usuario:
 
     def getSesion(self):
         return self.sesion
+
+
+
 
 
 

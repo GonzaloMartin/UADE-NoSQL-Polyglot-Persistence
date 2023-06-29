@@ -1,5 +1,6 @@
 from controllers.mongo_hlp import MongoHelper
-from all_classes.clases import Carrito
+from controllers.cassandra_hlp import CassandraHelper
+from all_classes.clases import Producto
 
 class carrito_controller:
     def __init__(self):
@@ -7,6 +8,8 @@ class carrito_controller:
         self.mongo_helper.conectar()
         self.mongo_helper.usar_db('bdd2')
         self.collection = "carrito"
+        self.cassandra_helper = CassandraHelper()
+        #hace falta agregar un atributo "estado" para el carrito
 
     def existeCarrito(self):
         return self.mongo_helper.exists_documents(self.collection)
@@ -14,6 +17,14 @@ class carrito_controller:
     def existeProductoEnCarrito(self,prod):
         return self.mongo_helper.get_document_by_id(self.collection,prod.id)
 
+    def getDocProducto(self,id):
+        return self.mongo_helper.get_document_by_id(self.collection,id)
+
+    def getProductofromDoc(self,id): #este controlador debería estar en productos controller
+        documento = self.getDocProducto(id)
+        producto = Producto(documento['id'], documento['nombre'], documento['precio'], 0, documento['categoria'],
+        documento['descripcion'])
+        return producto
 
     def agregarProducto(self,producto):
         try:
@@ -33,9 +44,9 @@ class carrito_controller:
                 try:
                     # Realizar la actualización
                     doc = self.mongo_helper.get_document_by_id(self.collection,producto.id)
-                    cantidadActual = doc['cantidad']
+                    #cantidadActual = doc['cantidad']
                     query = (
-                        {'$set': {'cantidad': cantidadActual + producto.cantidad}}
+                        {'$set': {'cantidad':producto.cantidad}}
                     )
                     self.mongo_helper.update_document(self.collection,producto.id,query)
                     print('Actualización exitosa.')
@@ -44,14 +55,78 @@ class carrito_controller:
         except Exception as e:
             print("se a producido un error a la hora de cargar el producto al carrito:",e)
 
+    def eliminar_producto_por_posicion(self, posicion):
+        carrito = self.mongo_helper.get_collection(self.collection)
+        productos = list(carrito.find())  # Convertir el cursor en una lista de productos
+
+        if posicion >= 0 and posicion < len(productos)+1:
+            producto_eliminar = productos[posicion - 1]
+            id_producto = producto_eliminar['id']
+
+            self.mongo_helper.delete_document(self.collection,id_producto)
+            print("Producto eliminado del carrito.")
+        else:
+            print("Posición inválida.")
+
+    def getItems(self):
+        carrito = self.mongo_helper.get_documents(self.collection)
+        return carrito
+
     def mostrarCarrito(self):
         carrito = self.mongo_helper.get_documents(self.collection)
         print("\n -----     carrito     -----\n")
+        i=0
         for producto in carrito:
+            i+=1
+            id = producto['id']
             nombre = producto['nombre']
             cantidad = producto['cantidad']
             precio = producto['precio']
-            print(f"{nombre} ({cantidad}) ${precio} c/u")
+            print(f"{i}.ID:{id} {nombre} ({cantidad}) ${precio} c/u")
+
+    def calcular_impuestos(self, total_items):
+        impuestos = total_items * 0.21  # 21% de impuestos IVA
+        return impuestos
+
+    def calcular_descuento(self, cliente, total_items):
+        tiempo_promedio = cliente['tiempo_promedio']
+        if tiempo_promedio > 240:
+            porcentaje_descuento = 40
+            tipo_descuento = "Usuario TOP"
+        elif tiempo_promedio > 120:
+            porcentaje_descuento = 20
+            tipo_descuento = "Usuario MEDIUM"
+        else:
+            porcentaje_descuento = 10
+            tipo_descuento = "Usuario LOW"
+
+        importe_descuento = porcentaje_descuento * 0.01 * total_items
+        return tipo_descuento, porcentaje_descuento, importe_descuento
+
+    def total_items(self,carrito):
+        for i in carrito:
+            total_carrito =+ (i['cantidad'] * i['precio'])
+        return total_carrito
+
+    def calcular_importe_total(self, carrito, impuestos, importe_descuento):
+        for i in carrito:
+            total_carrito =+ (i['cantidad'] * i['precio'])
+        total_carrito = total_carrito + impuestos - importe_descuento
+        return total_carrito
+
+    def insertar_datos_cassandra(self, carrito):
+        self.cassandra_helper.conectar()  # Conexión a Cassandra
+        self.cassandra_helper.usar_db('BDD')  # Utilizar el keyspace 'BDD'
+
+        for producto in carrito:
+            # Insertar los datos del producto en la tabla
+            columns = ["producto", "descripcion", "fecha_compra", "precio_unitario"]
+            values = [f"'{producto['nombre']}'", f"'{producto['descripcion']}'", "toTimestamp(now())",
+                      str(producto['precio'])]
+            self.cassandra_helper.insert_document("compras", columns, values)
+
+        self.cassandra_helper.close_connection()  # Cerrar la conexión a Cassandra
+
 
 
 

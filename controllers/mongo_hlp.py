@@ -22,6 +22,9 @@ class MongoHelper:
         coleccion = self._db[collection]
         return list(coleccion.find())
 
+    def get_document_by_name(self,coleccion,query):
+        return self._db[coleccion].find_one(query)
+
     def get_matching_documents(self,collection,clave,valor):
         resultado =  self._db[collection].find({clave: {"$regex": valor, "$options": "i"}})
         try:
@@ -42,6 +45,11 @@ class MongoHelper:
         id = {"id": id}
         coleccion = self._db[collection]
         coleccion.update_one(id,query)
+
+    def delete_document(self,collection,id):
+        id = {"id": id}
+        coleccion = self._db[collection]
+        coleccion.delete_one(id)
 
     def close_connection(self):
         if self._client:
