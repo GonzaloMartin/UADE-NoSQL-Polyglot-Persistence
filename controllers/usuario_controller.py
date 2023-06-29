@@ -4,21 +4,24 @@ from all_classes.clases import Usuario
 
 sys.path.append("../../..")
 
-class LoginHLP:
+class usuario_controller:
     def __init__(self):
         self._mongoHLP = MongoHelper()
         self._mongoHLP.conectar()
         self._mongoHLP.usar_db('bdd2')
+        self.collection = 'usuarios'
+        self.query = {}
+
 
     def login(self, username, password):
         # Aquí puedes agregar lógica de validación y autenticación
-        query = {
+        self.query = {
             'name': username,
             'password': password
         }
-        result = self._mongoHLP.get_collection('usuarios').find_one(query)
+        result = self.getUser()
         try:
-            if  result['name'] == query['name'] and result['password'] == query['password']:
+            if  result is not None:
                 print("Inicio de sesión exitoso")
                 usuario = Usuario(result)  #setea todos los valores al objeto usuario que se encuentran en la BDD
                 return usuario
@@ -26,8 +29,11 @@ class LoginHLP:
                 print("Invalid username or password") #de momento no entra nunca acá, siempre sale el error NoneType is not subscriptable
                 return None
         except Exception as err:
-                print("Usuario no encontrado, intente nuevamente")
+                print("Usuario no encontrado, intente nuevamente: ",err)
                 return None
+
+    def getUser(self):
+        return self._mongoHLP.get_document_by_name(self.collection,self.query)
 
 
     def register(self, username, password, dni, address):

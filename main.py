@@ -1,5 +1,5 @@
 import sys
-from controllers.LoginController import LoginHLP
+from controllers.usuario_controller import usuario_controller
 from models.views import Views
 sys.path.append("")
 #clear = lambda: os.system('cls')
@@ -23,7 +23,10 @@ while True:
 
 
             elif eleccion == 2: # gestionar carrito
-                view.display_gestionar_carrito_view(carrito)
+                try:
+                    view.display_gestionar_carrito_view(carrito)
+                except NameError:
+                    print("No existe un carrito activo: ",NameError)
             else:
                 print("Opción inválida.")
         except ValueError:
