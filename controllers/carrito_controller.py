@@ -9,7 +9,7 @@ class carrito_controller:
         self.mongo_helper.usar_db('bdd2')
         self.collection = "carrito"
         self.cassandra_helper = CassandraHelper()
-        #hace falta agregar un atributo "estado" para el carrito
+        # hace falta agregar un atributo "estado" para el carrito
 
     def existeCarrito(self):
         return self.mongo_helper.exists_documents(self.collection)
@@ -20,16 +20,16 @@ class carrito_controller:
     def getDocProducto(self,id):
         return self.mongo_helper.get_document_by_id(self.collection,id)
 
-    def getProductofromDoc(self,id): #este controlador debería estar en productos controller
+    def getProductofromDoc(self,id): # este controlador debería estar en productos controller
         documento = self.getDocProducto(id)
         producto = Producto(documento['id'], documento['nombre'], documento['precio'], 0, documento['categoria'],
         documento['descripcion'])
         return producto
 
     def agregarProducto(self,producto):
-        try:
+        try: # se agrega el producto al carrito
             if self.existeCarrito() is None or (self.existeCarrito() and self.existeProductoEnCarrito(producto) is None):
-                #se agrega el producto
+                # se agrega el producto
                 query = {
                     'id': producto.id,
                     'nombre': producto.nombre,
@@ -40,20 +40,26 @@ class carrito_controller:
                 }
                 self.mongo_helper.insert_document('carrito',query)
                 print("Agregado al carrito!")
-            else:
+            else: # se actualiza la cantidad del producto
                 try:
-                    # Realizar la actualización
-                    doc = self.mongo_helper.get_document_by_id(self.collection,producto.id)
-                    #cantidadActual = doc['cantidad']
-                    query = (
-                        {'$set': {'cantidad':producto.cantidad}}
-                    )
-                    self.mongo_helper.update_document(self.collection,producto.id,query)
-                    print('Actualización exitosa.')
+                    print("ATENCION: El producto existe, y se fijará una nueva Cantidad.")
+                    print("Continuar? (s/n)")
+                    optCantidad = input()
+                    if optCantidad == 's':
+                        # Realizar la actualización
+                        # doc = self.mongo_helper.get_document_by_id(self.collection,producto.id)
+                        # cantidadActual = doc['cantidad']
+                        query = (
+                            {'$set': {'cantidad':producto.cantidad}}
+                        )
+                        self.mongo_helper.update_document(self.collection,producto.id,query)
+                        print('Actualización Exitosa.')
+                    else:
+                        pass
                 except Exception as e:
                     print('Error al actualizar la cantidad:', e)
         except Exception as e:
-            print("se a producido un error a la hora de cargar el producto al carrito:",e)
+            print("se ha producido un error a la hora de cargar el producto al carrito:", e)
 
     def eliminar_producto_por_posicion(self, posicion):
         carrito = self.mongo_helper.get_collection(self.collection)
