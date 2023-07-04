@@ -42,7 +42,7 @@ class carrito_controller:
                 print("Agregado al carrito!")
             else: # se actualiza la cantidad del producto
                 try:
-                    print("ATENCION: El producto existe, y se fijará una nueva Cantidad.")
+                    print("ATENCION: El producto existe y se fijará una nueva Cantidad.")
                     print("Continuar? (s/n)")
                     optCantidad = input()
                     if optCantidad == 's':
@@ -80,15 +80,17 @@ class carrito_controller:
 
     def mostrarCarrito(self):
         carrito = self.mongo_helper.get_documents(self.collection)
-        print("\n -----     carrito     -----\n")
-        i=0
+        print("+" + " Carrito ".center(65, "-") + "+")
+        print("| " + "ID PRODUCTO | DESCRIPCIÓN          | CANTIDAD | PRECIO UNITARIO" + " |")  # header
+        i = 0
         for producto in carrito:
-            i+=1
+            i += 1
             id = producto['id']
             nombre = producto['nombre']
             cantidad = producto['cantidad']
             precio = producto['precio']
-            print(f"{i}.ID:{id} {nombre} ({cantidad}) ${precio} c/u")
+            print("| " + f"{i}.ID:{id: <6} | {nombre: <20} | " + f"(x{cantidad})".ljust(8) + " | " + f"${precio} c/u".rjust(15) + " |")
+        print("+" + "-" * 65 + "+")
 
     def calcular_impuestos(self, total_items):
         impuestos = total_items * 0.21  # 21% de impuestos IVA
@@ -109,14 +111,17 @@ class carrito_controller:
         importe_descuento = porcentaje_descuento * 0.01 * total_items
         return tipo_descuento, porcentaje_descuento, importe_descuento
 
-    def total_items(self,carrito):
+    def total_items(self, carrito):
+        # Calcular el total de items del carrito
+        total_carrito = 0
         for i in carrito:
-            total_carrito =+ (i['cantidad'] * i['precio'])
+            total_carrito += (i['cantidad'] * i['precio'])
         return total_carrito
 
     def calcular_importe_total(self, carrito, impuestos, importe_descuento):
+        total_carrito = 0
         for i in carrito:
-            total_carrito =+ (i['cantidad'] * i['precio'])
+            total_carrito += (i['cantidad'] * i['precio'])
         total_carrito = total_carrito + impuestos - importe_descuento
         return total_carrito
 
@@ -132,8 +137,3 @@ class carrito_controller:
             self.cassandra_helper.insert_document("compras", columns, values)
 
         self.cassandra_helper.close_connection()  # Cerrar la conexión a Cassandra
-
-
-
-
-
