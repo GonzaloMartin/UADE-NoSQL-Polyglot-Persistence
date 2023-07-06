@@ -54,7 +54,24 @@ pip install redis (tambien instalar el comprimido de redis desde https://redis.i
 
 ### *Comando para **Crear un Usuario***
 ```console
-db.usuarios.insertOne({name:"Juan",password:"juan123",address:"Av Rivadavia 123",dni:"40751234",tiempo_promedio:140,condicionImpuestos:0})
+Primero configuramos MongoDB
+
+use bdd2
+
+Output esperado:
+switched to db bdd2
+```
+Luego creamos el usuario
+```console
+
+
+db.usuarios.insertOne({name:"Juan",password:"juan123",address:"Av Rivadavia 123",dni:"40751234",tiempo_promedio:130,condicionImpuestos:0})
+
+Output esperado:
+{
+  acknowledged: true,
+  insertedId: ObjectId("64a3c477b2b10f2cae987d68")
+}
 ```
 
 ### *Comando para crear un **Catálogo de Productos***
