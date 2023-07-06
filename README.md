@@ -37,10 +37,12 @@ Además, al utilizar una base de datos NoSQL basada en documentos, no requiere u
 ### **GESTIONAR CARRITO**
 En esta sección de la aplicación se realizan las tareas necesarias para gestionar un carrito existente, listarlo o confirmarlo. Aquí nuevamente nos decantamos por **MongoDB** ya que los datos del carrito se encuentran registrados en esta base de datos, por lo que nos permite actualizarlo de manera optima o listarlo de una forma mas sencilla en el código.
 
+Tambien aqui se guardan los estados anteriores del carrito, recordando el Id del producto y su cantidad. Se suman a estos datos el "index" para poder recorrer todos los productos y una variable "estado_anterior" para saber si ya se volvio o no al estado anterior del carrito, ya que solo se permite volver atras una sola vez. Aqui utilizamos Redis nuevamente, lo que nos permitira volver a estados anteriores con rapidez y tambien tener alta disponibilidad, y la posibilidad de escalar.
+
 ### **CONFIRMAR COMPRA**
 En ultimo lugar, la funcionalidad del sistema concluye con la confirmación de la compra. Aquí utilizamos **Cassandra** para conservar los datos debido a su escalabilidad lineal, ya que el volumen de facturas puede crecer exponencialmente con el tiempo. Su modelo de datos basado en columnas permite diseñar el esquema de manera tal que se ajuste a la estructura de una factura.
 
-Por otro lado, también se utilizó **Cassandra** ya que posee una baja latencia y es una base de datos de rápida en su respuesta, ideal a la hora de generar y mostrar al cliente los detalles de su factura.
+Por otro lado, también se utilizó **Cassandra** ya que posee una baja latencia y es una base de datos de rápida en su respuesta, ideal a la hora de generar y procesar pagos o facturaciones de manera eficiente.
 
 ## Comandos necesarios para la ejecución de la aplicación
 
@@ -106,10 +108,36 @@ Output esperado:
 ```
 
 ### *Comando para **Configurar Cassandra***
-```console
+
 Creacíon de la KeySpace:
+```console
 create KEYSPACE BDD WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1' };
 use BDD;
+```
+
+Creación de las tablas:
+```console
+CREATE TABLE clientes (
+  id UUID PRIMARY KEY,
+  nombre TEXT,
+  direccion TEXT,
+  documento TEXT
+);
+
+CREATE TABLE facturaciones (
+  id UUID PRIMARY KEY,
+  nro_factura INT,
+  cliente_id UUID,
+  cliente_nombre TEXT,
+  cliente_direccion TEXT,
+  cliente_documento TEXT,
+  producto_nombre TEXT,
+  cantidad INT,
+  precio_unitario DECIMAL,
+  tipo_pago TEXT,
+  importe_total DECIMAL,
+  fecha_compra TIMESTAMP
+);
 ```
 
 ## Repositorio de la Aplicación

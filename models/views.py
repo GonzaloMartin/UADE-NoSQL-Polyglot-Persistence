@@ -109,7 +109,6 @@ class Views:
         else:
             print("No existe un carrito activo")
 
-
     def display_confirmar_carrito_view(self, carrito, cliente):
         print("-- Confirmación de Carrito --")
         carrito.mostrarCarrito()  # se muestran los productos del carrito
@@ -120,6 +119,7 @@ class Views:
         tipo_descuento, descuento_porcentaje, importe_descuento = carrito.calcular_descuento(cliente, total_precio_items)
         print("| " + f"Descuentos: {tipo_descuento} ({descuento_porcentaje}%) ".rjust(46) + "|" + f"  -{importe_descuento}".rjust(16) + " |")
 
+        pago_total = str(total_precio_items + impuestos - importe_descuento)
         print("| " + f"IMPORTE TOTAL ".rjust(46) + "|" + f"  ${total_precio_items + impuestos - importe_descuento}".rjust(16) + " |")
 
         print("+" + "--- Datos del Cliente ".ljust(65, "-") + "+")
@@ -133,13 +133,13 @@ class Views:
 
         opcion = int(input("Seleccionar: "))
         if opcion == 1:
-            self.procesar_confirmacion_carrito(carrito, items_carrito)
+            self.procesar_confirmacion_carrito(carrito, items_carrito, cliente, pago_total)
         elif opcion == 2:
             return
         else:
             print("Opción inválida.")
 
-    def procesar_confirmacion_carrito(self, carrito, items_carrito):
+    def procesar_confirmacion_carrito(self, carrito, items_carrito, cliente, pago_total):
         print("\nElija un Tipo de Pago para Finalizar la compra:\n"
               "1. Efectivo.\n"
               "2. Tarjeta de Crédito.\n"
@@ -147,8 +147,7 @@ class Views:
               "0. Volver.\n")
         opcion = int(input("Seleccionar tipo de pago: "))
         if opcion == 1 or opcion == 2 or opcion == 3:
-            print("Compra confirmada!")
-            carrito.insertar_datos_cassandra(items_carrito)
+            carrito.insertar_datos_cassandra(items_carrito, cliente, opcion, pago_total)
         elif opcion == 0:
             return
         else:
