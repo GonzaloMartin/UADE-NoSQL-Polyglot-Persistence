@@ -51,6 +51,9 @@ class MongoHelper:
         coleccion = self._db[collection]
         coleccion.delete_one(id)
 
+    def delete_collection_docs(self,collection):
+        self._db[collection].drop()
+
     def close_connection(self):
         if self._client:
             self._client.close()

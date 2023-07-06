@@ -14,6 +14,12 @@ class catalogo_productos:
         resultados = self.mongo_helper.get_matching_documents(self.collection,"nombre",nombre_producto)
         return resultados
 
+    def get_producto_por_id(self,id):
+        documento = self.mongo_helper.get_document_by_id(self.collection, id)
+        producto = Producto(documento['id'], documento['nombre'], documento['precio'], 0, documento['categoria'],
+                            documento['descripcion'])
+        return producto
+
     def mostrar_catalogo(self,catalogo):
         print("Resultados de búsqueda:")
         for i, prod in enumerate(catalogo):
