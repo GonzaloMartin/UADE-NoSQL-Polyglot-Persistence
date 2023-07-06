@@ -15,11 +15,30 @@ mongo_helper.usar_db('bdd2')
 
 # Realizar la búsqueda utilizando la expresión regular
 #result = mongo_helper["productos"].find({"nombre": {"$regex": "adidas", "$options": "i"}})
-result = mongo_helper.get_matching_documents('carrito',"nombre","adidas")
+"""result = mongo_helper.get_matching_documents('carrito',"nombre","adidas")
 result = mongo_helper.get_documents('carrito')
 for i in result:
-    precio =+ (i['precio'])
-print(precio)
+    id = i['id']
+    cantidad = i['cantidad']
+    print('---carrito----')
+    print(f'{id}\n{cantidad}')"""
+
+redis_helper = RedisHelper()
+
+redis_helper.connect()
+
+index = 0
+item = {"id":'01',"cantidad":2}
+index+=1
+id = item['id']
+cantidad = item['cantidad']
+print(id,cantidad)
+for i in range(2):
+    redis_helper.set_value(f'carrito:{i}:id',id)
+    redis_helper.set_value(f'carrito:{i}:cantidad',cantidad)
+    redis_helper.set_value('index',index)
+    redis_helper.close_connection()
+
 
 #print(result[2]['nombre'])
 #result = mongo_helper.exists_documents('a')

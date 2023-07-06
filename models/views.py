@@ -76,7 +76,8 @@ class Views:
                   "\n3. Eliminar Producto del carrito"
                   "\n4. Modificar cantidad de un producto"
                   "\n5. Confirmar carrito"
-                  "\n6. Salir")
+                  "\n6. Revertir estado del carrito"
+                  "\n7. Salir")
             opcion = int(input("opcion: "))
             if opcion == 1:
                 carrito.mostrarCarrito()
@@ -94,11 +95,20 @@ class Views:
                     self.modificar_cantidad_carrito_view(producto)
             elif opcion == 5:
                 usuario = usuario_controller().getUser()
-                self.display_confirmar_carrito_view(carrito, usuario)  # falta agregar el usuario, hacer una variable
+                self.display_confirmar_carrito_view(carrito, usuario)
             elif opcion == 6:
+                eleccion = input("Esta seguro que desea volver el carrito al estado anterior? s/n: ")
+                if eleccion == 's':
+                    carrito.obtener_estado_anterior_carrito()
+                elif eleccion == 'n':
+                    pass
+                else:
+                    print("Opcion invalida")
+            elif opcion == 7:
                 return
         else:
             print("No existe un carrito activo")
+
 
     def display_confirmar_carrito_view(self, carrito, cliente):
         print("-- Confirmación de Carrito --")
@@ -110,7 +120,6 @@ class Views:
         tipo_descuento, descuento_porcentaje, importe_descuento = carrito.calcular_descuento(cliente, total_precio_items)
         print("| " + f"Descuentos: {tipo_descuento} ({descuento_porcentaje}%) ".rjust(46) + "|" + f"  -{importe_descuento}".rjust(16) + " |")
 
-        # importe_total = carrito.calcular_importe_total(total_precio_items, impuestos, importe_descuento)
         print("| " + f"IMPORTE TOTAL ".rjust(46) + "|" + f"  ${total_precio_items + impuestos - importe_descuento}".rjust(16) + " |")
 
         print("+" + "--- Datos del Cliente ".ljust(65, "-") + "+")

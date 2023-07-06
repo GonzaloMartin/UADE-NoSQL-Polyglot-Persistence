@@ -1,6 +1,8 @@
 from controllers.mongo_hlp import MongoHelper
 from controllers.cassandra_hlp import CassandraHelper
+from controllers.redis_hlp import RedisHelper
 from all_classes.clases import Producto
+from controllers.catalogo_productos_controller import catalogo_productos
 
 class carrito_controller:
     def __init__(self):
@@ -9,10 +11,14 @@ class carrito_controller:
         self.mongo_helper.usar_db('bdd2')
         self.collection = "carrito"
         self.cassandra_helper = CassandraHelper()
+        self.redis_helper = RedisHelper()
         # hace falta agregar un atributo "estado" para el carrito
 
+    def inicializar_carrito(self):
+        self.borrarCarrito()
+
     def existeCarrito(self):
-        return self.mongo_helper.exists_documents(self.collection)
+        return self.mongo_helper.exists_documents(self.collection) is not None
 
     def existeProductoEnCarrito(self,prod):
         return self.mongo_helper.get_document_by_id(self.collection,prod.id)
@@ -28,7 +34,10 @@ class carrito_controller:
 
     def agregarProducto(self,producto):
         try: # se agrega el producto al carrito
-            if self.existeCarrito() is None or (self.existeCarrito() and self.existeProductoEnCarrito(producto) is None):
+            if not self.existeCarrito():
+                self.inicializar_carrito()
+            if (not self.existeCarrito() or (self.existeCarrito() and self.existeProductoEnCarrito(producto) is None)):
+                self.guardar_estado_carrito()
                 # se agrega el producto
                 query = {
                     'id': producto.id,
@@ -42,6 +51,7 @@ class carrito_controller:
                 print("Agregado al carrito!")
             else: # se actualiza la cantidad del producto
                 try:
+                    self.guardar_estado_carrito()
                     print("ATENCION: El producto existe y se fijará una nueva Cantidad.")
                     print("Continuar? (s/n)")
                     optCantidad = input()
@@ -61,7 +71,21 @@ class carrito_controller:
         except Exception as e:
             print("se ha producido un error a la hora de cargar el producto al carrito:", e)
 
+    def agregarProductos(self,productos):
+        for producto in productos:
+            query = {
+                'id': producto.id,
+                'nombre': producto.nombre,
+                'precio': producto.precio,
+                'cantidad': producto.cantidad,
+                'categoria': producto.categoria,
+                'descripcion': producto.descripcion
+            }
+            self.mongo_helper.insert_document('carrito', query)
+
+
     def eliminar_producto_por_posicion(self, posicion):
+        self.guardar_estado_carrito()
         carrito = self.mongo_helper.get_collection(self.collection)
         productos = list(carrito.find())  # Convertir el cursor en una lista de productos
 
@@ -78,11 +102,17 @@ class carrito_controller:
         carrito = self.mongo_helper.get_documents(self.collection)
         return carrito
 
+    def getCarrito(self):
+        return self.mongo_helper.get_documents(self.collection)
+
+    def borrarCarrito(self):
+        self.mongo_helper.delete_collection_docs(self.collection)
+
     def mostrarCarrito(self):
-        carrito = self.mongo_helper.get_documents(self.collection)
         print("+" + " Carrito ".center(65, "-") + "+")
         print("| " + "ID PRODUCTO | DESCRIPCIÓN          | CANTIDAD | PRECIO UNITARIO" + " |")  # header
         i = 0
+        carrito = self.getCarrito()
         for producto in carrito:
             i += 1
             id = producto['id']
@@ -111,9 +141,8 @@ class carrito_controller:
         importe_descuento = porcentaje_descuento * 0.01 * total_items
         return tipo_descuento, porcentaje_descuento, importe_descuento
 
-    def total_items(self, carrito):
-        # Calcular el total de items del carrito
-        total_carrito = 0
+    def total_items(self,carrito):
+        total_carrito= 0
         for i in carrito:
             total_carrito += (i['cantidad'] * i['precio'])
         return total_carrito
@@ -137,3 +166,38 @@ class carrito_controller:
             self.cassandra_helper.insert_document("compras", columns, values)
 
         self.cassandra_helper.close_connection()  # Cerrar la conexión a Cassandra
+
+    def guardar_estado_carrito(self):
+        self.redis_helper.connect()
+        self.mongo_helper.get_documents(self.collection)
+        carrito = self.getCarrito()
+        index = 0
+        for item in carrito:
+            id = item['id']
+            cantidad = item['cantidad']
+            self.redis_helper.set_value(f'carrito:{index}:id',id)
+            self.redis_helper.set_value(f'carrito:{index}:cantidad',cantidad)
+            index += 1
+        self.redis_helper.set_value('index',index)
+        self.redis_helper.set_value('estado_anterior',1) # esta variable se usa para saber si es posible revertir el estado del carrito al anterior o si ya se revirtió.
+        self.redis_helper.close_connection()
+
+    def obtener_estado_anterior_carrito(self):
+        if self.redis_helper.get_value('estado_anterior') == '0': #se pregunta si se puede volver al estado anterior
+            print("El carrito ya se encuentra en el estado anterior")
+        else:
+            index = int(self.redis_helper.get_value('index'))
+            self.borrarCarrito()
+            catalogo = catalogo_productos()
+            productos = []
+            for i in range(index):
+                productoID = int(self.redis_helper.get_value(f'carrito:{i}:id'))
+                cantidadProducto = int(self.redis_helper.get_value(f'carrito:{i}:cantidad'))
+                producto = catalogo.get_producto_por_id(productoID)
+                producto.cantidad = cantidadProducto
+                productos.append(producto)
+            self.agregarProductos(productos)
+            self.redis_helper.set_value('estado_anterior', 0)
+            print("Se ha vuelto al estado anterior del carrito")
+
+
