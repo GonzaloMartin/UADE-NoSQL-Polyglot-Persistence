@@ -1,3 +1,4 @@
+import random
 from controllers.mongo_hlp import MongoHelper
 from controllers.cassandra_hlp import CassandraHelper
 from controllers.redis_hlp import RedisHelper
@@ -83,7 +84,6 @@ class carrito_controller:
             }
             self.mongo_helper.insert_document('carrito', query)
 
-
     def eliminar_producto_por_posicion(self, posicion):
         self.guardar_estado_carrito()
         carrito = self.mongo_helper.get_collection(self.collection)
@@ -154,17 +154,55 @@ class carrito_controller:
         total_carrito = total_carrito + impuestos - importe_descuento
         return total_carrito
 
-    def insertar_datos_cassandra(self, carrito):
+    def insertar_datos_cassandra(self, items_carrito, cliente, opcion, pago):
         self.cassandra_helper.conectar()  # Conexión a Cassandra
-        self.cassandra_helper.usar_db('BDD')  # Utilizar el keyspace 'BDD'
+        self.cassandra_helper.usar_db('bdd')  # Utilizar el keyspace 'BDD'
 
-        for producto in carrito:
-            # Insertar los datos del producto en la tabla
-            columns = ["producto", "descripcion", "fecha_compra", "precio_unitario"]
-            values = [f"'{producto['nombre']}'", f"'{producto['descripcion']}'", "toTimestamp(now())",
-                      str(producto['precio'])]
-            self.cassandra_helper.insert_document("compras", columns, values)
+        print("Procesando compra...")
+        # Creo un índice por Nombre de Cliente
+        self.cassandra_helper.execute_query("CREATE INDEX IF NOT EXISTS indice_nombre ON clientes (nombre);")
 
+        # Busco el ID del cliente en la tabla Clientes
+        id_cliente = self.cassandra_helper.execute_query(
+            "SELECT id FROM clientes where nombre='" + cliente['name'] + "';")
+
+        # Si el cliente no existe, se inserta en la tabla
+        if id_cliente is None:
+            # Insertar los datos del cliente en la tabla (id, nombre, direccion, documento)
+            columns_usr = ["id", "nombre", "direccion", "documento"]
+            values_usr = [f"now()", f"'{cliente['name']}'", f"'{cliente['address']}'", f"'{cliente['dni']}'"]
+            self.cassandra_helper.insert_document("clientes", columns_usr, values_usr)
+
+            # Una vez insertado, busco el id del cliente nuevamente
+            # el string directo de id_cliente será: id_cliente.was_applied.urn[9:]
+            id_cliente = self.cassandra_helper.execute_query("SELECT id FROM clientes where nombre='" + cliente['name'] + "';")
+            print("Cliente Ok.")
+
+        # Crear un número de factura aleatorio
+        nro_factura_random = random.randint(1000000, 9999999)
+
+        # Creo un índice para nro_factura en la tabla facturaciones
+        self.cassandra_helper.execute_query("CREATE INDEX IF NOT EXISTS indice_nro_factura ON facturaciones (nro_factura);")
+
+        # Busco el numero de factura en la tabla facturaciones
+        valorBuscado = self.cassandra_helper.execute_query("SELECT nro_factura FROM facturaciones where nro_factura=" + str(nro_factura_random) + ";")
+        if len(valorBuscado.current_rows) > 0:  # Si el número de factura ya existe, genero otro
+            nro_factura_random = random.randint(1000000, 9999999)
+
+        # Insertar los datos del producto en la tabla
+        for producto in items_carrito:
+            columns = ["id", "nro_factura", "cliente_id", "cliente_nombre", "cliente_direccion", "cliente_documento",
+                       "producto_nombre", "cantidad", "precio_unitario", "tipo_pago", "importe_total",
+                       "fecha_compra"]
+            values = [f"now()", f"{nro_factura_random}", f"{id_cliente.was_applied.urn[9:]}", f"'{cliente['name']}'", f"'{cliente['address']}'", f"'{cliente['dni']}'",
+                      f"'{producto['nombre']}'", str(producto['cantidad']), str(producto['precio']),
+                      f"'{opcion}'", f"{pago}", f"toTimestamp(now())"]
+            self.cassandra_helper.insert_document("facturaciones", columns, values)
+        print("Compra registrada Ok.")
+
+        # Vaciar carrito
+        self.borrarCarrito()
+        # Cerrar la conexión a Cassandra
         self.cassandra_helper.close_connection()  # Cerrar la conexión a Cassandra
 
     def guardar_estado_carrito(self):
@@ -199,5 +237,3 @@ class carrito_controller:
             self.agregarProductos(productos)
             self.redis_helper.set_value('estado_anterior', 0)
             print("Se ha vuelto al estado anterior del carrito")
-
-
